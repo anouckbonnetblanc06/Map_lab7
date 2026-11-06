@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Walking tour (GEOG 464 template)</title>
+<!--
+GEOG 464 walking-tour template. One file, no libraries, works on a phone.
+TO MAKE YOUR TOUR: change only TITLE, INTRO and the STOPS list in the script below.
+Everything else (big buttons, read aloud, GPS distance, map links) already works.
+GPS needs the page to be served over https (GitHub Pages is fine).
+© 2026 Luke Russell. All rights reserved. Students may copy and adapt it for GEOG 464.
+-->
+<style>
+:root { --navy:#1F2D5A; --gold:#DCBD23; --cream:#FBEBD0; }
+{ box-sizing: border-box; }
+body { margin:0; font-family: Arial, Helvetica, sans-serif; background:var(--navy); color:#fff; line-height:1.5; }
+header { padding:18px 18px 8px; }
+h1 { margin:0 0 6px; font-size:26px; }
+#intro { margin:0; opacity:.9; }
+main { padding:12px 18px 120px; }
+.card { background:var(--cream); color:var(--navy); border-radius:14px; padding:18px; }
+.count { font-size:14px; font-weight:bold; letter-spacing:.05em; text-transform:uppercase; color:#6b5a12; }
+h2 { margin:6px 0 10px; font-size:24px; }
+.text { font-size:20px; margin:0 0 14px; }
+.dirs { font-size:19px; border-left:6px solid var(--gold); padding:8px 12px; background:#fff; border-radius:8px; }
+.dirs b { display:block; font-size:14px; text-transform:uppercase; letter-spacing:.05em; }
+.row { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+button, a.btn { flex:1; min-height:52px; font-size:18px; font-weight:bold; border:0; border-radius:10px; padding:10px; cursor:pointer;
+background:var(--navy); color:#fff; text-align:center; text-decoration:none; display:flex; align-items:center; justify-content:center; }
+button.alt, a.alt { background:#fff; color:var(--navy); border:2px solid var(--navy); }
+button:focus-visible, a.btn:focus-visible { outline:4px solid var(--gold); outline-offset:2px; }
+label { display:flex; gap:10px; align-items:center; font-size:17px; margin-top:12px; }
+input[type=checkbox] { width:24px; height:24px; }
+#gps { font-size:17px; margin-top:10px; min-height:1.5em; }
+.safety { margin-top:16px; font-size:15px; opacity:.9; }
+nav { position:fixed; left:0; right:0; bottom:0; display:flex; gap:10px; padding:12px 18px; background:var(--navy); border-top:3px solid var(--gold); }
+</style>
+</head>
+<body>
+<header>
+<h1 id="title"></h1>
+<p id="intro"></p>
+</header>
+<main>
+<section class="card" aria-live="polite">
+<div class="count" id="count"></div>
+<h2 id="name"></h2>
+<p class="text" id="text"></p>
+<div class="dirs"><b>Next: how to get there</b><span id="dirs"></span></div>
+<div class="row">
+<button id="speak" type="button">Read aloud</button>
+<a id="maplink" class="btn alt" target="_blank" rel="noopener">Open in Maps</a>
+</div>
+<label><input type="checkbox" id="readDirs" checked> Read the directions too (phone can stay in your pocket)</label>
+<div class="row"><button id="where" class="alt" type="button">How far is this stop?</button></div>
+<p id="gps"></p>
+</section>
+<p class="safety">Signs, signals and your own judgment come first. Stop on the sidewalk to read; phone down while you cross.</p>
+</main>
+<nav>
+<button id="prev" class="alt" type="button">Back</button>
+<button id="next" type="button">Next stop</button>
+</nav>
+<script>
+// ===== CHANGE ONLY THIS PART =====
+const TITLE = "Hidden Gems Amongst Concordia's Campus";
+const INTRO = "Starts and ends at the Hall Building. This walking tour visits Le Frigo Vert, the Grey Nuns Building and the J.W. McConnell Building.";
+// Coordinates are approximate map points. Check each pin, entrance and route before using the tour.
+// Facts marked [CHECK] should be verified before anyone walks the tour.
+const STOPS = [
+{ name: "Start: the Hall Building", lat: 45.4972, lon: -73.5790,
+text: "The Henry F. Hall Building opened in 1966 and is named after Henry Foss Hall, president of Sir George Williams University from 1956 to 1962. Its cube-like design uses prefabricated, stressed concrete and reflects the Brutalist architectural style. Today, it is an important academic and student-life centre at Concordia. [CHECK: confirm the best public entrance and meeting point.]",
+directions: "Leave the Hall Building and walk east along de Maisonneuve Boulevard toward Guy Street. Turn left onto Guy Street and walk north toward Le Frigo Vert at 2238 Guy Street. Landmark: look for the Guy Street and de Maisonneuve Boulevard intersection. [CHECK: confirm the safest crossing and entrance.]" },
+{ name: "Le Frigo Vert", lat: 45.5010, lon: -73.5792,
+text: "Le Frigo Vert began as a student-supported health-food cooperative and has developed into a nonprofit community space focused on food access, sustainability and alternative health. It offers food, educational activities and community programming. [CHECK: confirm its current address, services and history after the 2026 move to 2238 Guy Street.]",
+directions: "Walk south on Guy Street toward Sainte-Catherine Street and continue toward René-Lévesque Boulevard. The Grey Nuns Building is on Guy Street near the stone walls and gates. Landmark: look for the historic stone complex and chapel tower. [CHECK: confirm the public entrance and safest crossing.]" },
+{ name: "Grey Nuns Building", lat: 45.493445, lon: -73.576701,
+text: "The Grey Nuns Building was constructed between 1869 and 1871 as the Mother House of the Grey Nuns of Montréal. Its large stone structure, chapel and grounds helped earn it recognition as a national historic site of Canada. [CHECK: confirm which exterior areas are open to visitors.]",
+directions: "Walk north on Guy Street toward de Maisonneuve Boulevard. Turn left and walk west toward the J.W. McConnell Building at 1400 de Maisonneuve Boulevard West. Landmark: look for the large modern LB Building near the Concordia campus buildings. [CHECK: confirm the correct entrance.]" },
+{ name: "J.W. McConnell Building", lat: 45.4965, lon: -73.5810,
+text: "The J.W. McConnell Building is part of Concordia University's downtown campus and is named after philanthropist J.W. McConnell. Concordia's Department of English, including English Literature offices, is located in room LB-641. [CHECK: confirm the building's history, current room location and public access.]",
+directions: "Walk east along de Maisonneuve Boulevard toward the Hall Building. Continue past the campus buildings until you reach the Hall Building near Mackay and Bishop streets. Landmark: the Hall Building is the large cube-shaped concrete building. [CHECK: use marked crossings and follow current pedestrian signs.]" },
+{ name: "Back at the Hall Building", lat: 45.4972, lon: -73.5790,
+text: "This is the end of the tour. The Hall Building remains one of Concordia's most recognizable downtown buildings and an important centre for learning and student life.",
+directions: "You are here." },
+];
+// ===== END OF THE PART TO CHANGE =====
+let i = 0;
+const $ = (id) => document.getElementById(id);
+function show() {
+const s = STOPS[i];
+$("title").textContent = TITLE;
+$("intro").textContent = INTRO;
+$("count").textContent = "Stop " + (i + 1) + " of " + STOPS.length;
+$("name").textContent = s.name;
+$("text").textContent = s.text;
+$("dirs").textContent = s.directions;
+$("prev").disabled = i === 0;
+$("next").textContent = i === STOPS.length - 1 ? "Finished" : "Next stop";
+const has = typeof s.lat === "number" && typeof s.lon === "number";
+$("maplink").style.display = has ? "" : "none";
+$("where").style.display = has ? "" : "none";
+if (has) $("maplink").href = "https://www.openstreetmap.org/?mlat=" + s.lat + "&mlon=" + s.lon + "#map=18/" + s.lat + "/" + s.lon;
+$("gps").textContent = "";
+if ("speechSynthesis" in window) speechSynthesis.cancel();
+window.scrollTo(0, 0);
+}
+function speak() {
+if (!("speechSynthesis" in window)) { $("gps").textContent = "This browser cannot read aloud. The text is all on the screen."; return; }
+const s = STOPS[i];
+let words = s.name + ". " + s.text;
+if ($("readDirs").checked) words += " Next: " + s.directions;
+speechSynthesis.cancel();
+speechSynthesis.speak(new SpeechSynthesisUtterance(words));
+}
+function metres(a, b, c, d) {
+const R = 6371000, r = Math.PI / 180;
+const x = Math.sin((c - a) * r / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin((d - b) * r / 2) ** 2;
+return 2 * R * Math.asin(Math.sqrt(x));
+}
+function where() {
+const s = STOPS[i];
+if (!("geolocation" in navigator) || !window.isSecureContext) {
+$("gps").textContent = "Location needs the https address (GitHub Pages). The directions above still work.";
+return;
+}
+$("gps").textContent = "Finding you...";
+navigator.geolocation.getCurrentPosition(
+(p) => { const m = metres(p.coords.latitude, p.coords.longitude, s.lat, s.lon);
+$("gps").textContent = "About " + Math.round(m / 10) * 10 + " m away in a straight line (GPS can be off by 20 m or more between tall buildings)."; },
+() => { $("gps").textContent = "Could not get your location. Follow the directions above."; },
+{ enableHighAccuracy: true, timeout: 10000 }
+);
+}
+$("prev").addEventListener("click", () => { if (i > 0) { i--; show(); } });
+$("next").addEventListener("click", () => { if (i < STOPS.length - 1) { i++; show(); } });
+$("speak").addEventListener("click", speak);
+$("where").addEventListener("click", where);
+show();
+</script>
+</body>
+</html>
